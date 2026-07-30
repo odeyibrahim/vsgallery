@@ -52,10 +52,10 @@ export const handler = async (event) => {
             p_customer_email: email,
             p_customer_name: name,
             p_customer_phone: phone || '',
-            p_items: JSON.stringify(items),
+            p_items: items,
             p_discount_code: null,
             p_shipping_method: shippingMethod || 'standard',
-            p_customer_address: JSON.stringify({ street: address || '', city: city || '', zip: zip || '' }),
+            p_customer_address: { street: address || '', city: city || '', zip: zip || '' },
             p_payment_provider: provider,
             p_currency: orderCurrency
         });
