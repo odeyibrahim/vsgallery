@@ -1,0 +1,16 @@
+{
+  "name": "vgallery-complete",
+  "version": "2.0.0",
+  "description": "V. Gallery - Art + Commerce, with Paystack, Flutterwave, and bank/domiciliary transfer support",
+  "scripts": {
+    "build": "echo 'No build step required'",
+    "hash-password": "node -e \"console.log(require('bcryptjs').hashSync(process.argv[1], 10))\""
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "bcryptjs": "^2.4.3"
+  },
+  "devDependencies": {
+    "@netlify/functions": "^2.6.0"
+  }
+}

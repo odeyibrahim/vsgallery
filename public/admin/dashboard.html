@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - V. Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: white;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .logout-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover {
+            background: #b91c1c;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .section h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #333;
+        }
+        .admin-btn {
+            background: none;
+            border: 1px solid #ddd;
+            color: #333;
+            padding: 6px 12px;
+            font-size: 12px;
+            margin-right: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .admin-btn:hover {
+            background: #f5f5f5;
+            border-color: #000;
+        }
+        .admin-btn.confirm-pay {
+            border-color: #16a34a;
+            color: #16a34a;
+        }
+        .admin-btn.confirm-pay:hover {
+            background: #16a34a;
+            color: #fff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            color: #666;
+            font-weight: 600;
+            background: #fafafa;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            text-transform: capitalize;
+        }
+        .badge.paid { background: #dcfce7; color: #16a34a; }
+        .badge.pending { background: #fef3c7; color: #b45309; }
+        .badge.failed, .badge.refunded { background: #fee2e2; color: #dc2626; }
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content h3 {
+            margin-bottom: 20px;
+        }
+        .modal-content input, .modal-content textarea, .modal-content select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        @media (max-width: 768px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .container {
+                padding: 12px;
+            }
+            th, td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>V. Gallery Admin</h1>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </header>
+
+        <div class="stats" id="stats">
+            <div class="stat-card"><div class="stat-value">-</div><div class="stat-label">Revenue</div></div>
+            <div class="stat-card"><div class="stat-value">-</div><div class="stat-label">Orders</div></div>
+            <div class="stat-card"><div class="stat-value">-</div><div class="stat-label">Products</div></div>
+            <div class="stat-card"><div class="stat-value">-</div><div class="stat-label">Customers</div></div>
+        </div>
+
+        <div class="section">
+            <h2>Quick Actions</h2>
+            <div class="action-buttons">
+                <button onclick="showProducts()">📦 Manage Products</button>
+                <button onclick="showOrders()">📋 View Orders</button>
+                <button onclick="showCustomers()">👥 View Customers</button>
+            </div>
+        </div>
+
+        <div class="section" id="content">
+            <p style="color:#888; text-align:center; padding:40px;">Select an option above to get started.</p>
+        </div>
+    </div>
+
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Add Product</h3>
+            <input type="text" id="productTitle" placeholder="Product title">
+            <textarea id="productDesc" placeholder="Description" rows="3"></textarea>
+            <select id="productType">
+                <option value="merch">Merch</option>
+                <option value="print">Print</option>
+                <option value="original">Original</option>
+                <option value="craft">Craft</option>
+                <option value="text">Text</option>
+            </select>
+            <input type="number" id="productPrice" placeholder="Price (USD)" step="0.01">
+            <input type="number" id="productStock" placeholder="Stock quantity">
+            <input type="text" id="productImage" placeholder="Image URL">
+            <input type="text" id="productVariations" placeholder='Variations JSON ["url1","url2"]'>
+            <select id="productOrientation">
+                <option value="square">Square</option>
+                <option value="portrait">Portrait</option>
+                <option value="landscape">Landscape</option>
+            </select>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="saveProduct()" style="flex: 1;">Save</button>
+                <button onclick="closeModal()" style="background: #666;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('admin_token');
+        if (!token) {
+            window.location.href = '/admin/index.html';
+        }
+
+        let editingId = null;
+
+        async function apiCall(op, data = {}) {
+            try {
+                const response = await fetch('/.netlify/functions/admin-operations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Token': token
+                    },
+                    body: JSON.stringify({ operation: op, data })
+                });
+                if (response.status === 401) {
+                    localStorage.removeItem('admin_token');
+                    window.location.href = '/admin/index.html';
+                    return { error: 'Session expired' };
+                }
+                return await response.json();
+            } catch (err) {
+                console.error('API call failed:', err);
+                return { error: err.message };
+            }
+        }
+
+        async function loadStats() {
+            const stats = await apiCall('get_stats');
+            if (!stats.error) {
+                document.getElementById('stats').innerHTML = `
+                    <div class="stat-card"><div class="stat-value">$${(stats.totalRevenue || 0).toFixed(2)}</div><div class="stat-label">Revenue</div></div>
+                    <div class="stat-card"><div class="stat-value">${stats.totalOrders || 0}</div><div class="stat-label">Orders</div></div>
+                    <div class="stat-card"><div class="stat-value">${stats.totalProducts || 0}</div><div class="stat-label">Products</div></div>
+                    <div class="stat-card"><div class="stat-value">${stats.totalCustomers || 0}</div><div class="stat-label">Customers</div></div>
+                `;
+            }
+        }
+
+        async function showProducts() {
+            const products = await apiCall('get_products');
+            if (products.error) {
+                document.getElementById('content').innerHTML = '<p style="color:red;">Error loading products</p>';
+                return;
+            }
+
+            let html = '<h2>Products</h2><button onclick="openAddModal()" style="margin-bottom: 20px;">+ Add New Product</button><div style="overflow-x: auto;"><table><thead><tr><th>Image</th><th>Title</th><th>Price</th><th>Stock</th><th>Type</th><th>Actions</th></tr></thead><tbody>';
+
+            for (let p of products) {
+                html += `<tr>
+                    <td><img src="${p.image_url || ''}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;"></td>
+                    <td><strong>${p.title}</strong></td>
+                    <td>$${p.base_price}</td>
+                    <td>${p.stock}</td>
+                    <td>${p.type}</td>
+                    <td>
+                        <button class="admin-btn" onclick="editProduct('${p.id}')">Edit</button>
+                        <button class="admin-btn" onclick="deleteProduct('${p.id}')">Delete</button>
+                    </td>
+                </tr>`;
+            }
+
+            html += '</tbody></table></div>';
+            document.getElementById('content').innerHTML = html;
+        }
+
+        async function showOrders() {
+            const orders = await apiCall('get_orders');
+            if (orders.error) {
+                document.getElementById('content').innerHTML = '<p style="color:red;">Error loading orders</p>';
+                return;
+            }
+
+            let html = '<h2>Orders</h2><div style="overflow-x: auto;"><table><thead><tr><th>Order #</th><th>Customer</th><th>Total</th><th>Provider</th><th>Payment</th><th>Fulfillment</th><th>Date</th><th>Actions</th></tr></thead><tbody>';
+
+            for (let o of orders) {
+                const canConfirmBank = o.payment_provider === 'bank_transfer' && o.payment_status !== 'paid';
+                html += `<tr>
+                    <td><code>${o.order_id}</code></td>
+                    <td>${o.customer_name}<br><small>${o.customer_email}</small></td>
+                    <td>$${o.total_amount}</td>
+                    <td>${o.payment_provider || '-'}</td>
+                    <td><span class="badge ${o.payment_status}">${o.payment_status}</span></td>
+                    <td>
+                        <select onchange="updateStatus('${o.id}', this.value)" style="padding: 4px 8px;">
+                            <option value="pending" ${o.order_status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="processing" ${o.order_status === 'processing' ? 'selected' : ''}>Processing</option>
+                            <option value="shipped" ${o.order_status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                            <option value="delivered" ${o.order_status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                        </select>
+                    </td>
+                    <td>${new Date(o.created_at).toLocaleDateString()}</td>
+                    <td>
+                        ${canConfirmBank ? `<button class="admin-btn confirm-pay" onclick="confirmBankPayment('${o.id}')">Confirm Payment</button>` : ''}
+                        <button class="admin-btn" onclick="viewOrder('${o.id}')">View</button>
+                    </td>
+                </tr>`;
+            }
+
+            html += '</tbody></table></div>';
+            document.getElementById('content').innerHTML = html;
+        }
+
+        async function confirmBankPayment(id) {
+            if (!confirm('Confirm that this bank/domiciliary transfer has been received? This will mark the order paid and reduce stock.')) return;
+            const result = await apiCall('confirm_bank_payment', { id });
+            if (!result.error) {
+                showOrders();
+                loadStats();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        }
+
+        async function showCustomers() {
+            const customers = await apiCall('get_customers');
+            if (customers.error) {
+                document.getElementById('content').innerHTML = '<p style="color:red;">Error loading customers</p>';
+                return;
+            }
+
+            let html = '<h2>Customers</h2><div style="overflow-x: auto;"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Orders</th><th>Total Spent</th></tr></thead><tbody>';
+
+            for (let c of customers) {
+                html += `<tr>
+                    <td><strong>${c.name || 'N/A'}</strong></td>
+                    <td>${c.email}</td>
+                    <td>${c.phone || '-'}</td>
+                    <td>${c.orders_count || 0}</td>
+                    <td>$${c.total_spent || 0}</td>
+                </tr>`;
+            }
+
+            html += '</tbody></table></div>';
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function openAddModal() {
+            editingId = null;
+            document.getElementById('modalTitle').innerText = 'Add Product';
+            clearForm();
+            document.getElementById('productModal').classList.add('active');
+        }
+
+        async function editProduct(id) {
+            const products = await apiCall('get_products');
+            const product = products.find(p => p.id === id);
+            if (product) {
+                editingId = id;
+                document.getElementById('modalTitle').innerText = 'Edit Product';
+                document.getElementById('productTitle').value = product.title;
+                document.getElementById('productDesc').value = product.description || '';
+                document.getElementById('productType').value = product.type;
+                document.getElementById('productPrice').value = product.base_price;
+                document.getElementById('productStock').value = product.stock;
+                document.getElementById('productImage').value = product.image_url || '';
+                document.getElementById('productVariations').value = JSON.stringify(product.variations || []);
+                document.getElementById('productOrientation').value = product.orientation || 'square';
+                document.getElementById('productModal').classList.add('active');
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('productTitle').value = '';
+            document.getElementById('productDesc').value = '';
+            document.getElementById('productType').value = 'merch';
+            document.getElementById('productPrice').value = '';
+            document.getElementById('productStock').value = '';
+            document.getElementById('productImage').value = '';
+            document.getElementById('productVariations').value = '[]';
+            document.getElementById('productOrientation').value = 'square';
+        }
+
+        function closeModal() {
+            document.getElementById('productModal').classList.remove('active');
+        }
+
+        async function saveProduct() {
+            let variations = [];
+            try {
+                variations = JSON.parse(document.getElementById('productVariations').value);
+            } catch(e) {}
+
+            const data = {
+                title: document.getElementById('productTitle').value,
+                description: document.getElementById('productDesc').value,
+                type: document.getElementById('productType').value,
+                base_price: parseFloat(document.getElementById('productPrice').value),
+                stock: parseInt(document.getElementById('productStock').value),
+                image_url: document.getElementById('productImage').value,
+                variations: variations,
+                orientation: document.getElementById('productOrientation').value
+            };
+
+            let result;
+            if (editingId) {
+                data.id = editingId;
+                result = await apiCall('update_product', data);
+            } else {
+                result = await apiCall('create_product', data);
+            }
+
+            if (!result.error) {
+                closeModal();
+                showProducts();
+                loadStats();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (confirm('Delete this product permanently?')) {
+                const result = await apiCall('delete_product', { id });
+                if (!result.error) {
+                    showProducts();
+                    loadStats();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            }
+        }
+
+        async function updateStatus(id, status) {
+            await apiCall('update_order_status', { id, status });
+            showOrders();
+        }
+
+        function viewOrder(id) {
+            alert('Order details feature coming soon. ID: ' + id);
+        }
+
+        function logout() {
+            localStorage.removeItem('admin_token');
+            window.location.href = '/admin/index.html';
+        }
+
+        loadStats();
+    </script>
+</body>
+</html>
