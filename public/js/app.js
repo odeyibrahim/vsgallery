@@ -22,18 +22,9 @@ class HybridApp {
         this.loadSaved();
         this.setupEvents();
         this.setupSwipe();
-        this.registerServiceWorker();
         const enterBtn = document.getElementById('enterGalleryBtn');
         if (enterBtn) enterBtn.onclick = () => this.enterGallery();
         this.showIntro();
-    }
-
-    registerServiceWorker() {
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(() => {});
-            });
-        }
     }
 
     bindElements() {
@@ -273,7 +264,7 @@ class HybridApp {
 
         const previewDiv = document.getElementById('checkoutProductPreview');
         if (previewDiv) {
-            previewDiv.innerHTML = '<div style="display:flex; gap:15px; align-items:center;"><img src="' + Utils.escapeAttr(p.image_url) + '" style="width:80px; height:80px; object-fit:cover; border-radius:4px;"><div><strong>' + Utils.escapeHtml(p.title) + '</strong><br>' + Utils.escapeHtml(this.formatPrice(p.base_price)) + '</div></div>';
+            previewDiv.innerHTML = '<div style="display:flex; gap:15px; align-items:center;"><img src="' + p.image_url + '" style="width:80px; height:80px; object-fit:cover; border-radius:4px;"><div><strong>' + p.title + '</strong><br>' + this.formatPrice(p.base_price) + '</div></div>';
         }
         const qtySpan = document.getElementById('checkoutQuantity');
         if (qtySpan) qtySpan.innerText = '1';
@@ -319,19 +310,17 @@ class HybridApp {
         const { bank_details, order_number, amount, currency, whatsapp_number } = response;
 
         if (this.el.bankLocalDetails) {
-            const l = bank_details.local;
             this.el.bankLocalDetails.innerHTML =
-                `Bank: ${Utils.escapeHtml(l.bank_name)}<br>` +
-                `Account #: ${Utils.escapeHtml(l.account_number)}<br>` +
-                `Account name: ${Utils.escapeHtml(l.account_name)}`;
+                `Bank: ${bank_details.local.bank_name}<br>` +
+                `Account #: ${bank_details.local.account_number}<br>` +
+                `Account name: ${bank_details.local.account_name}`;
         }
         if (this.el.bankDomDetails) {
-            const d = bank_details.domiciliary;
             this.el.bankDomDetails.innerHTML =
-                `Bank: ${Utils.escapeHtml(d.bank_name)}<br>` +
-                `Account #: ${Utils.escapeHtml(d.account_number)}<br>` +
-                `Account name: ${Utils.escapeHtml(d.account_name)}<br>` +
-                `SWIFT: ${Utils.escapeHtml(d.swift_code)}`;
+                `Bank: ${bank_details.domiciliary.bank_name}<br>` +
+                `Account #: ${bank_details.domiciliary.account_number}<br>` +
+                `Account name: ${bank_details.domiciliary.account_name}<br>` +
+                `SWIFT: ${bank_details.domiciliary.swift_code}`;
         }
         if (this.el.bankRefNumber) this.el.bankRefNumber.textContent = order_number;
         if (this.el.bankDetailsPanel) this.el.bankDetailsPanel.classList.add('active');
@@ -427,9 +416,9 @@ class HybridApp {
         let html = '';
         for (let i = 0; i < filtered.length; i++) {
             const p = filtered[i];
-            html += '<div class="grid-item" data-action="view-product" data-id="' + Utils.escapeAttr(p.product_id) + '" tabindex="0" role="button">' +
-                '<img src="' + Utils.escapeAttr(p.image_url) + '" loading="lazy" alt="' + Utils.escapeAttr(p.title) + '">' +
-                '<div class="grid-item-info">' + Utils.escapeHtml(p.title) + '<br>' + Utils.escapeHtml(this.formatPrice(p.base_price)) + '</div>' +
+            html += '<div class="grid-item" onclick="app.viewProduct(\'' + p.product_id + '\')">' +
+                '<img src="' + p.image_url + '" loading="lazy">' +
+                '<div class="grid-item-info">' + p.title + '<br>' + this.formatPrice(p.base_price) + '</div>' +
                 '</div>';
         }
         if (this.el.gridContainer) this.el.gridContainer.innerHTML = html;
@@ -506,44 +495,6 @@ class HybridApp {
         for (let i = 0; i < filterBtns.length; i++) {
             filterBtns[i].onclick = () => this.filterGrid(filterBtns[i].dataset.filter);
         }
-
-        // CSP-friendly event delegation for all data-action elements (no inline onclick=)
-        document.addEventListener('click', (e) => {
-            const target = e.target.closest('[data-action]');
-            if (!target) return;
-            const action = target.dataset.action;
-            switch (action) {
-                case 'close-grid':
-                    this.closeGrid();
-                    break;
-                case 'close-checkout-overlay':
-                    if (e.target === target) this.closeCheckout();
-                    break;
-                case 'qty-dec':
-                    this.updateQuantity(-1);
-                    break;
-                case 'qty-inc':
-                    this.updateQuantity(1);
-                    break;
-                case 'place-order':
-                    this.processPayment();
-                    break;
-                case 'close-checkout':
-                    this.closeCheckout();
-                    break;
-                case 'view-product':
-                    this.viewProduct(target.dataset.id);
-                    break;
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key !== 'Enter' && e.key !== ' ') return;
-            const target = e.target.closest('[data-action="view-product"]');
-            if (!target) return;
-            e.preventDefault();
-            this.viewProduct(target.dataset.id);
-        });
     }
 
     setupSwipe() {
